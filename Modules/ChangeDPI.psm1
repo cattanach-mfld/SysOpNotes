@@ -22,14 +22,29 @@ function Start-ChangeDPI{
     #Only run if the screen DPI is not already at 100% and the screen size is less than 15 inches and the resolution width is between 1900 and 2000
     if ($actualDPI -ne 100 -and $size -lt 15 -and ($resolution -ge 1900 -and $resolution -le 2000)) {
 
+        #Test to see if the correct path is created.  This is needed if the user has never changed the DPI settings before
+        if (!(Test-Path "hkcu:\Control Panel\Desktop\PerMonitorSettings")) {
+            New-Item -Path "hkcu:\Control Panel\Desktop" -Name PerMonitorSettings
+        }
+        
+        #Test to see if the correct path is created.  This is needed if the user has never changed the DPI settings before
+        if (Test-Path "hkcu:\Control Panel\Desktop\PerMonitorSettings") {
+            if (!(get-childitem -path "hkcu:\Control Panel\Desktop\PerMonitorSettings")) {
+                $systemMonitors = (get-childitem -path "HKLM:\System\CurrentControlSet\Control\GraphicsDrivers\ScaleFactors\").PSChildName
+                foreach ($item in $systemMonitors){
+                    New-Item -Path "hkcu:\Control Panel\Desktop\PerMonitorSettings" -Name $item
+                }
+            }
+        }
+
         #Get the monitors in the system.  This will set all monitors on the system to 100%
         $monitors = (get-childitem -path "hkcu:\Control Panel\Desktop\PerMonitorSettings").PSPath
 
-        #Set the DpiValue: 4294967293 refers to -2 and 4294967294 refers to -1.  These numbers are needed because you can't set a negative number in the registry.
+        #Set the DpiValue: 4294967294 refers to -2 and 4294967295 refers to -1.  These numbers are needed because you can't set a negative number in the registry.
         #-1 and -2 refer to the steps down from the "Recommended" DPI value set by windows and this can change from screen to screen.
         #If the recommended DPI is 150%, then setting the vlaue to 4294967293 will turn it down to 100%
         foreach ($_ in $monitors) {
-            Set-ItemProperty -Path "$_" -Name "DpiValue" -Value 4294967293
+            Set-ItemProperty -Path "$_" -Type DWord -Name "DpiValue" -Value 4294967294
         }
 
         #Restart the Graphics Driver.  This is supposed to mimic the keyboard shortcut win + ctrl + shift + b.

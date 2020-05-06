@@ -30,7 +30,7 @@ function Start-ChangeDPI{
         #Test to see if the correct path is created.  This is needed if the user has never changed the DPI settings before
         if (Test-Path "hkcu:\Control Panel\Desktop\PerMonitorSettings") {
             if (!(get-childitem -path "hkcu:\Control Panel\Desktop\PerMonitorSettings")) {
-                $systemMonitors = (get-childitem -path "HKLM:\System\CurrentControlSet\Control\GraphicsDrivers\ScaleFactors\").PSChildName
+                $systemMonitors = (get-childitem -path "HKLM:\System\CurrentControlSet\Control\GraphicsDrivers\Configuration\").PSChildName
                 foreach ($item in $systemMonitors){
                     New-Item -Path "hkcu:\Control Panel\Desktop\PerMonitorSettings" -Name $item
                 }
